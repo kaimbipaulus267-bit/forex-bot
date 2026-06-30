@@ -115,6 +115,27 @@ def load_csv(file_path):
 
     return None
 
+def show_download_buttons():
+    st.sidebar.subheader("⬇️ Download Results")
+
+    files = {
+        "Download Trades CSV": TRADES_FILE,
+        "Download Report TXT": REPORT_FILE,
+        "Download Chart PNG": CHART_FILE,
+        "Download Strategy Comparison CSV": COMPARISON_FILE,
+        "Download Optimization CSV": OPTIMIZATION_FILE,
+    }
+
+    for label, file_path in files.items():
+        if file_exists(file_path):
+            with open(file_path, "rb") as file:
+                st.sidebar.download_button(
+                    label=label,
+                    data=file,
+                    file_name=os.path.basename(file_path),
+                    mime="application/octet-stream"
+                )
+
 
 def run_python_script(script_name, timeout=900):
     """
@@ -218,8 +239,12 @@ def show_sidebar_controls():
 
     st.sidebar.divider()
 
+    show_download_buttons()
+
+    st.sidebar.divider()
+
     if st.session_state.last_command_output:
-        with st.sidebar.expander("Last Command Output"):
+         with st.sidebar.expander("Last Command Output"):
             st.code(st.session_state.last_command_output)
 
 
@@ -427,7 +452,6 @@ def show_equity_curve(trades):
         "The equity curve shows account balance after each closed trade. "
         "The drawdown chart shows how much the account dropped from its previous highest balance."
     )
-
 
 def main():
     add_custom_css()
