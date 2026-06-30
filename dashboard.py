@@ -1,4 +1,6 @@
 import os
+import sys
+import subprocess
 import pandas as pd
 import streamlit as st
 
@@ -28,6 +30,7 @@ st.set_page_config(
     page_icon="📈",
     layout="wide"
 )
+
 
 def add_custom_css():
     st.markdown(
@@ -71,16 +74,6 @@ def add_custom_css():
             font-weight: 700;
         }
 
-        .section-card {
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(225, 81, 175, 0.25);
-            border-radius: 18px;
-            padding: 20px;
-            margin-top: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 0 20px rgba(225, 81, 175, 0.08);
-        }
-
         h2, h3 {
             color: #37E3DD;
         }
@@ -103,11 +96,6 @@ def add_custom_css():
             border: 1px solid #37E3DD;
         }
 
-        .stDataFrame {
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
         footer {
             visibility: hidden;
         }
@@ -126,6 +114,113 @@ def load_csv(file_path):
         return pd.read_csv(file_path)
 
     return None
+
+
+def run_python_script(script_name, timeout=900):
+    """
+    Runs a Python script using the same Python environment as Streamlit.
+    """
+    try:
+        process = subprocess.run(
+            [sys.executable, script_name],
+            capture_output=True,
+            text=True,
+            timeout=timeout
+        )
+
+        output = process.stdout
+
+        if process.stderr:
+            output += "\n\nERRORS:\n" + process.stderr
+
+        return process.returncode, output
+
+    except subprocess.TimeoutExpired:
+        return 1, f"{script_name} took too long and was stopped."
+
+    except Exception as error:
+        return 1, str(error)
+
+
+def show_sidebar_controls():
+    st.sidebar.title("Control Panel")
+
+    st.sidebar.write("Run bot tools directly from the dashboard.")
+
+    if "last_command_output" not in st.session_state:
+        st.session_state.last_command_output = ""
+
+    if st.sidebar.button("Run Full Bot Test"):
+        with st.spinner("Running full bot test..."):
+            code, output = run_python_script("run_all.py")
+
+        st.session_state.last_command_output = output
+
+        if code == 0:
+            st.sidebar.success("Full bot test completed.")
+        else:
+            st.sidebar.error("Full bot test failed.")
+
+    if st.sidebar.button("Download Data Only"):
+        with st.spinner("Downloading data..."):
+            code, output = run_python_script("download_data.py")
+
+        st.session_state.last_command_output = output
+
+        if code == 0:
+            st.sidebar.success("Data downloaded.")
+        else:
+            st.sidebar.error("Download failed.")
+
+    if st.sidebar.button("Run Backtest Only"):
+        with st.spinner("Running backtest..."):
+            code, output = run_python_script("backtester.py")
+
+        st.session_state.last_command_output = output
+
+        if code == 0:
+            st.sidebar.success("Backtest completed.")
+        else:
+            st.sidebar.error("Backtest failed.")
+
+    if st.sidebar.button("Run Optimizer Only"):
+        with st.spinner("Running optimizer..."):
+            code, output = run_python_script("optimizer.py")
+
+        st.session_state.last_command_output = output
+
+        if code == 0:
+            st.sidebar.success("Optimizer completed.")
+        else:
+            st.sidebar.error("Optimizer failed.")
+
+    if st.sidebar.button("Refresh Dashboard"):
+        st.rerun()
+
+    st.sidebar.divider()
+
+    st.sidebar.subheader("Generated Files")
+
+    files = {
+        "Market Data": DATA_FILE,
+        "Trades": TRADES_FILE,
+        "Report": REPORT_FILE,
+        "Chart": CHART_FILE,
+        "Comparison": COMPARISON_FILE,
+        "Optimization": OPTIMIZATION_FILE,
+    }
+
+    for name, path in files.items():
+        if file_exists(path):
+            st.sidebar.success(f"{name}: Found")
+        else:
+            st.sidebar.warning(f"{name}: Missing")
+
+    st.sidebar.divider()
+
+    if st.session_state.last_command_output:
+        with st.sidebar.expander("Last Command Output"):
+            st.code(st.session_state.last_command_output)
 
 
 def show_project_settings():
@@ -153,7 +248,7 @@ def show_trade_summary(trades):
     st.subheader("Trade Summary")
 
     if trades is None or trades.empty:
-        st.warning("No trades found. Run python run_all.py first.")
+        st.warning("No trades found. Run the full bot test first.")
         return
 
     total_trades = len(trades)
@@ -198,7 +293,7 @@ def show_report():
     st.subheader("Performance Report")
 
     if not file_exists(REPORT_FILE):
-        st.warning("No report found. Run python run_all.py first.")
+        st.warning("No report found. Run the full bot test first.")
         return
 
     with open(REPORT_FILE, "r") as file:
@@ -211,7 +306,7 @@ def show_chart():
     st.subheader("Backtest Chart")
 
     if not file_exists(CHART_FILE):
-        st.warning("No chart found. Run python run_all.py first.")
+        st.warning("No chart found. Run the full bot test first.")
         return
 
     st.image(CHART_FILE, caption="Backtest Chart")
@@ -233,7 +328,7 @@ def show_strategy_comparison():
     comparison = load_csv(COMPARISON_FILE)
 
     if comparison is None or comparison.empty:
-        st.warning("No strategy comparison found. Run python run_all.py first.")
+        st.warning("No strategy comparison found. Run the full bot test first.")
         return
 
     st.dataframe(comparison, use_container_width=True)
@@ -255,7 +350,7 @@ def show_optimization_results():
     optimization = load_csv(OPTIMIZATION_FILE)
 
     if optimization is None or optimization.empty:
-        st.warning("No optimization results found. Run python run_all.py first.")
+        st.warning("No optimization results found. Run the full bot test first.")
         return
 
     st.dataframe(optimization, use_container_width=True)
@@ -278,13 +373,15 @@ def show_market_data():
     data = load_csv(DATA_FILE)
 
     if data is None or data.empty:
-        st.warning("No market data found. Run python run_all.py first.")
+        st.warning("No market data found. Run the full bot test first.")
         return
 
     st.dataframe(data.tail(100), use_container_width=True)
 
+
 def main():
     add_custom_css()
+    show_sidebar_controls()
 
     st.markdown(
         "<h1 class='main-title'>📈 Forex Bot Dashboard</h1>",

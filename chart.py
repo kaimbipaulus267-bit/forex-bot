@@ -83,7 +83,7 @@ def plot_trades():
     plt.tight_layout()
 
     plt.savefig(CHART_FILE)
-    plt.show()
+    plt.close()
 
     print(f"Chart saved as {CHART_FILE}")
 
