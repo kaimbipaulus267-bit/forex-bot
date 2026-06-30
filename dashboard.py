@@ -29,6 +29,93 @@ st.set_page_config(
     layout="wide"
 )
 
+def add_custom_css():
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background: radial-gradient(circle at top, #111827 0%, #020617 60%);
+        }
+
+        .main-title {
+            text-align: center;
+            color: #37E3DD;
+            font-size: 42px;
+            font-weight: 800;
+            text-shadow: 0 0 18px rgba(55, 227, 221, 0.8);
+            margin-bottom: 5px;
+        }
+
+        .sub-title {
+            text-align: center;
+            color: #CBD5E1;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        div[data-testid="stMetric"] {
+            background: linear-gradient(145deg, #111827, #1E293B);
+            border: 1px solid rgba(55, 227, 221, 0.25);
+            padding: 18px;
+            border-radius: 18px;
+            box-shadow: 0 0 18px rgba(55, 227, 221, 0.08);
+        }
+
+        div[data-testid="stMetricLabel"] {
+            color: #94A3B8;
+        }
+
+        div[data-testid="stMetricValue"] {
+            color: #F8FAFC;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .section-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(225, 81, 175, 0.25);
+            border-radius: 18px;
+            padding: 20px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 0 20px rgba(225, 81, 175, 0.08);
+        }
+
+        h2, h3 {
+            color: #37E3DD;
+        }
+
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 12px;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            background-color: #111827;
+            border-radius: 12px;
+            padding: 10px 18px;
+            color: #CBD5E1;
+            border: 1px solid rgba(55, 227, 221, 0.2);
+        }
+
+        .stTabs [aria-selected="true"] {
+            background-color: #1E293B;
+            color: #37E3DD;
+            border: 1px solid #37E3DD;
+        }
+
+        .stDataFrame {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        footer {
+            visibility: hidden;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 def file_exists(file_path):
     return os.path.exists(file_path)
@@ -196,10 +283,18 @@ def show_market_data():
 
     st.dataframe(data.tail(100), use_container_width=True)
 
-
 def main():
-    st.title("📈 Forex Bot Dashboard")
-    st.write("Backtesting dashboard for the Python forex bot.")
+    add_custom_css()
+
+    st.markdown(
+        "<h1 class='main-title'>📈 Forex Bot Dashboard</h1>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        "<p class='sub-title'>Backtesting dashboard for your Python forex bot</p>",
+        unsafe_allow_html=True
+    )
 
     trades = load_csv(TRADES_FILE)
 
