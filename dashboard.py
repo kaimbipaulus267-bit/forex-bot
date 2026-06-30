@@ -378,6 +378,56 @@ def show_market_data():
 
     st.dataframe(data.tail(100), use_container_width=True)
 
+def show_equity_curve(trades):
+    st.subheader("Equity Curve and Drawdown")
+
+    if trades is None or trades.empty:
+        st.warning("No trades found. Run the full bot test first.")
+        return
+
+    if "exit_time" not in trades.columns or "balance" not in trades.columns:
+        st.warning("Trades file does not have exit_time or balance columns.")
+        return
+
+    equity = trades[["exit_time", "balance"]].copy()
+    equity["exit_time"] = pd.to_datetime(equity["exit_time"])
+    equity = equity.sort_values("exit_time")
+    equity = equity.set_index("exit_time")
+
+    highest_balance = equity["balance"].cummax()
+    drawdown = equity["balance"] - highest_balance
+
+    max_drawdown = drawdown.min()
+    final_balance = equity["balance"].iloc[-1]
+    highest_account_balance = equity["balance"].max()
+    lowest_account_balance = equity["balance"].min()
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Final Balance", f"${round(final_balance, 2)}")
+
+    with col2:
+        st.metric("Highest Balance", f"${round(highest_account_balance, 2)}")
+
+    with col3:
+        st.metric("Max Drawdown", f"${round(max_drawdown, 2)}")
+
+    st.write("### Equity Curve")
+    st.line_chart(equity["balance"])
+
+    drawdown_df = pd.DataFrame({
+        "drawdown": drawdown
+    })
+
+    st.write("### Drawdown")
+    st.line_chart(drawdown_df)
+
+    st.write(
+        "The equity curve shows account balance after each closed trade. "
+        "The drawdown chart shows how much the account dropped from its previous highest balance."
+    )
+
 
 def main():
     add_custom_css()
@@ -403,13 +453,14 @@ def main():
 
     st.divider()
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "Report",
-        "Chart",
-        "Trades",
-        "Strategy Comparison",
-        "Optimization",
-        "Market Data"
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    "Report",
+    "Chart",
+    "Equity Curve",
+    "Trades",
+    "Strategy Comparison",
+    "Optimization",
+    "Market Data"
     ])
 
     with tab1:
@@ -419,15 +470,18 @@ def main():
         show_chart()
 
     with tab3:
-        show_trades_table(trades)
+        show_equity_curve(trades)
 
     with tab4:
-        show_strategy_comparison()
+        show_trades_table(trades)
 
     with tab5:
-        show_optimization_results()
+        show_strategy_comparison()
 
     with tab6:
+        show_optimization_results()
+
+    with tab7:
         show_market_data()
 
 
