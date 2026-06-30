@@ -12,6 +12,7 @@ REPORT_FILE = os.path.join(RESULTS_DIR, "report.txt")
 CHART_FILE = os.path.join(RESULTS_DIR, "backtest_chart.png")
 COMPARISON_FILE = os.path.join(RESULTS_DIR, "strategy_comparison.csv")
 OPTIMIZATION_FILE = os.path.join(RESULTS_DIR, "optimization_results.csv")
+MULTI_PAIR_FILE = os.path.join(RESULTS_DIR, "multi_pair_results.csv")
 
 # =========================
 # Market data settings
@@ -21,6 +22,14 @@ SYMBOL = "EURUSD=X"
 PERIOD = "60d"
 INTERVAL = "15m"
 
+PAIRS_TO_TEST = [
+    {"name": "EUR/USD", "symbol": "EURUSD=X"},
+    {"name": "GBP/USD", "symbol": "GBPUSD=X"},
+    {"name": "AUD/USD", "symbol": "AUDUSD=X"},
+    {"name": "NZD/USD", "symbol": "NZDUSD=X"},
+    {"name": "USD/CAD", "symbol": "CAD=X"},
+    {"name": "USD/CHF", "symbol": "CHF=X"},
+]
 
 # =========================
 # Strategy settings

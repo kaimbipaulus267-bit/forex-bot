@@ -3,6 +3,7 @@ import sys
 import subprocess
 import pandas as pd
 import streamlit as st
+from multi_pair_tester import compare_pairs
 
 from config import (
     DATA_FILE,
@@ -22,6 +23,7 @@ from config import (
     SPREAD_PIPS,
     MAX_TRADES_PER_DAY,
     DAILY_LOSS_LIMIT_PERCENT,
+    MULTI_PAIR_FILE,
 )
 
 
@@ -124,6 +126,7 @@ def show_download_buttons():
         "Download Chart PNG": CHART_FILE,
         "Download Strategy Comparison CSV": COMPARISON_FILE,
         "Download Optimization CSV": OPTIMIZATION_FILE,
+        "Download Multi-Pair Results CSV": MULTI_PAIR_FILE,
     }
 
     for label, file_path in files.items():
@@ -215,6 +218,17 @@ def show_sidebar_controls():
         else:
             st.sidebar.error("Optimizer failed.")
 
+    if st.sidebar.button("Test Multiple Pairs"):
+        with st.spinner("Testing multiple currency pairs..."):
+            code, output = run_python_script("multi_pair_tester.py")
+
+        st.session_state.last_command_output = output
+
+        if code == 0:
+            st.sidebar.success("Multi-pair test completed.")
+        else:
+            st.sidebar.error("Multi-pair test failed.")
+
     if st.sidebar.button("Refresh Dashboard"):
         st.rerun()
 
@@ -229,6 +243,7 @@ def show_sidebar_controls():
         "Chart": CHART_FILE,
         "Comparison": COMPARISON_FILE,
         "Optimization": OPTIMIZATION_FILE,
+        "Multi-Pair": MULTI_PAIR_FILE,
     }
 
     for name, path in files.items():
@@ -368,6 +383,28 @@ def show_strategy_comparison():
         f"with profit/loss ${best_strategy['total_profit_loss']}"
     )
 
+def show_multi_pair_results():
+    st.subheader("Multi-Pair Results")
+
+    multi_pair = load_csv(MULTI_PAIR_FILE)
+
+    if multi_pair is None or multi_pair.empty:
+        st.warning("No multi-pair results found. Run the multi-pair test first.")
+        return
+
+    st.dataframe(multi_pair, use_container_width=True)
+
+    best_result = multi_pair.sort_values(
+        by="total_profit_loss",
+        ascending=False
+    ).iloc[0]
+
+    st.success(
+        f"Best result: {best_result['pair']} using {best_result['strategy']} | "
+        f"Profit/Loss: ${best_result['total_profit_loss']} | "
+        f"Win Rate: {best_result['win_rate']}%"
+    )
+
 
 def show_optimization_results():
     st.subheader("Optimization Results")
@@ -477,13 +514,14 @@ def main():
 
     st.divider()
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "Report",
     "Chart",
     "Equity Curve",
     "Trades",
     "Strategy Comparison",
     "Optimization",
+    "Multi-Pair",
     "Market Data"
     ])
 
@@ -506,6 +544,9 @@ def main():
         show_optimization_results()
 
     with tab7:
+        show_multi_pair_results()
+
+    with tab8:
         show_market_data()
 
 

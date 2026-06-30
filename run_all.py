@@ -8,7 +8,7 @@ from chart import plot_trades
 from strategy_comparison import compare_strategies
 from optimizer import run_optimizer
 from bot_logger import setup_logger
-
+from multi_pair_tester import compare_pairs
 
 logger = setup_logger()
 
@@ -83,6 +83,11 @@ def run_all():
 
     if not optimizer_completed:
         logger.warning("Strategy optimization failed.")
+
+    multi_pair_completed = run_step("Step 7: Testing multiple currency pairs", compare_pairs)
+
+    if not multi_pair_completed:
+        logger.warning("Multi-pair testing failed.")
 
     logger.info("==============================")
     logger.info("FOREX BOT FULL TEST COMPLETED")
