@@ -9,6 +9,7 @@ from strategy_comparison import compare_strategies
 from optimizer import run_optimizer
 from bot_logger import setup_logger
 from multi_pair_tester import compare_pairs
+from walk_forward import run_walk_forward_test
 
 logger = setup_logger()
 
@@ -88,6 +89,11 @@ def run_all():
 
     if not multi_pair_completed:
         logger.warning("Multi-pair testing failed.")
+
+    walk_forward_completed = run_step("Step 8: Running walk-forward test", run_walk_forward_test)
+
+    if not walk_forward_completed:
+        logger.warning("Walk-forward testing failed.")
 
     logger.info("==============================")
     logger.info("FOREX BOT FULL TEST COMPLETED")

@@ -24,6 +24,7 @@ from config import (
     MAX_TRADES_PER_DAY,
     DAILY_LOSS_LIMIT_PERCENT,
     MULTI_PAIR_FILE,
+    WALK_FORWARD_FILE,
 )
 
 
@@ -127,6 +128,7 @@ def show_download_buttons():
         "Download Strategy Comparison CSV": COMPARISON_FILE,
         "Download Optimization CSV": OPTIMIZATION_FILE,
         "Download Multi-Pair Results CSV": MULTI_PAIR_FILE,
+        "Download Walk-Forward CSV": WALK_FORWARD_FILE,
     }
 
     for label, file_path in files.items():
@@ -218,6 +220,17 @@ def show_sidebar_controls():
         else:
             st.sidebar.error("Optimizer failed.")
 
+    if st.sidebar.button("Run Walk-Forward Test"):
+        with st.spinner("Running walk-forward test..."):
+            code, output = run_python_script("walk_forward.py")
+
+        st.session_state.last_command_output = output
+
+        if code == 0:
+            st.sidebar.success("Walk-forward test completed.")
+        else:
+            st.sidebar.error("Walk-forward test failed.")
+
     if st.sidebar.button("Test Multiple Pairs"):
         with st.spinner("Testing multiple currency pairs..."):
             code, output = run_python_script("multi_pair_tester.py")
@@ -244,6 +257,7 @@ def show_sidebar_controls():
         "Comparison": COMPARISON_FILE,
         "Optimization": OPTIMIZATION_FILE,
         "Multi-Pair": MULTI_PAIR_FILE,
+        "Walk Forward": WALK_FORWARD_FILE,
     }
 
     for name, path in files.items():
@@ -489,6 +503,65 @@ def show_equity_curve(trades):
         "The equity curve shows account balance after each closed trade. "
         "The drawdown chart shows how much the account dropped from its previous highest balance."
     )
+    
+def show_walk_forward_results():
+    st.subheader("Walk-Forward Results")
+
+    walk_forward = load_csv(WALK_FORWARD_FILE)
+
+    if walk_forward is None or walk_forward.empty:
+        st.warning("No walk-forward results found. Run the walk-forward test first.")
+        return
+
+    st.dataframe(walk_forward, use_container_width=True)
+
+    result = walk_forward.iloc[0]
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Best Strategy", result["best_strategy"])
+
+    with col2:
+        st.metric("Training Profit", f"${result['training_profit_loss']}")
+
+    with col3:
+        st.metric("Testing Profit", f"${result['testing_profit_loss']}")
+
+    col4, col5, col6 = st.columns(3)
+
+    with col4:
+        st.metric("Training Win Rate", f"{result['training_win_rate']}%")
+
+    with col5:
+        st.metric("Testing Win Rate", f"{result['testing_win_rate']}%")
+
+    with col6:
+        st.metric("Testing Profit Factor", result["testing_profit_factor"])
+
+    st.write("### Meaning")
+
+    training_profit = float(result["training_profit_loss"])
+    testing_profit = float(result["testing_profit_loss"])
+
+    if testing_profit > 0 and testing_profit >= training_profit * 0.5:
+        st.success(
+            "The strategy looks more stable because it still performed reasonably on unseen data."
+        )
+
+    elif testing_profit > 0:
+        st.warning(
+            "The strategy made profit on unseen data, but testing performance is much weaker than training performance."
+        )
+
+    else:
+        st.error(
+            "The strategy failed on unseen data. This may indicate overfitting."
+        )
+
+    st.info(
+        "Walk-forward testing checks if optimized settings still work on future data that the optimizer did not see."
+    )
 
 def main():
     add_custom_css()
@@ -514,7 +587,7 @@ def main():
 
     st.divider()
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "Report",
     "Chart",
     "Equity Curve",
@@ -522,6 +595,7 @@ def main():
     "Strategy Comparison",
     "Optimization",
     "Multi-Pair",
+    "Walk-Forward",
     "Market Data"
     ])
 
@@ -547,6 +621,9 @@ def main():
         show_multi_pair_results()
 
     with tab8:
+        show_walk_forward_results()
+
+    with tab9:
         show_market_data()
 
 

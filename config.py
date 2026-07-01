@@ -13,6 +13,7 @@ CHART_FILE = os.path.join(RESULTS_DIR, "backtest_chart.png")
 COMPARISON_FILE = os.path.join(RESULTS_DIR, "strategy_comparison.csv")
 OPTIMIZATION_FILE = os.path.join(RESULTS_DIR, "optimization_results.csv")
 MULTI_PAIR_FILE = os.path.join(RESULTS_DIR, "multi_pair_results.csv")
+WALK_FORWARD_FILE = os.path.join(RESULTS_DIR, "walk_forward_results.csv")
 
 # =========================
 # Market data settings

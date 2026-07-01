@@ -79,6 +79,31 @@ def generate_rsi_signal(data, buy_level, sell_level):
     return "NO TRADE"
 
 
+def calculate_max_drawdown(trades_df):
+    """
+    Calculates the largest balance drop from a previous high.
+    """
+    highest_balance = trades_df["balance"].cummax()
+    drawdown = trades_df["balance"] - highest_balance
+    return drawdown.min()
+
+
+def calculate_robust_score(total_profit_loss, max_drawdown, total_trades, win_rate):
+    """
+    Gives a more realistic score.
+
+    Higher is better.
+    Penalizes big drawdown and too few trades.
+    """
+
+    if total_trades < 5:
+        return -999999
+
+    score = total_profit_loss - (abs(max_drawdown) * 1.5) + (win_rate * 0.2)
+
+    return round(score, 2)
+
+
 def calculate_result_summary(strategy_name, settings, trades, final_balance):
     if len(trades) == 0:
         return {
@@ -91,6 +116,8 @@ def calculate_result_summary(strategy_name, settings, trades, final_balance):
             "total_profit_loss": 0,
             "final_balance": ACCOUNT_BALANCE,
             "profit_factor": "No trades",
+            "max_drawdown": 0,
+            "robust_score": -999999,
         }
 
     trades_df = pd.DataFrame(trades)
@@ -109,6 +136,15 @@ def calculate_result_summary(strategy_name, settings, trades, final_balance):
     total_loss = losing_trades["profit_loss"].sum()
     total_profit_loss = trades_df["profit_loss"].sum()
 
+    max_drawdown = calculate_max_drawdown(trades_df)
+
+    robust_score = calculate_robust_score(
+        total_profit_loss,
+        max_drawdown,
+        total_trades,
+        win_rate
+    )
+
     if total_loss != 0:
         profit_factor = round(total_profit / abs(total_loss), 2)
     else:
@@ -124,6 +160,8 @@ def calculate_result_summary(strategy_name, settings, trades, final_balance):
         "total_profit_loss": round(total_profit_loss, 2),
         "final_balance": round(final_balance, 2),
         "profit_factor": profit_factor,
+        "max_drawdown": round(max_drawdown, 2),
+        "robust_score": robust_score,
     }
 
 
@@ -375,8 +413,8 @@ def run_optimizer():
     results_df = pd.DataFrame(all_results)
 
     results_df = results_df.sort_values(
-        by="total_profit_loss",
-        ascending=False
+    by="robust_score",
+    ascending=False
     )
 
     results_df.to_csv(OPTIMIZATION_FILE, index=False)
@@ -395,6 +433,8 @@ def run_optimizer():
     print(f"Final Balance: ${best_result['final_balance']}")
     print(f"Win Rate: {best_result['win_rate']}%")
     print(f"Total Trades: {best_result['total_trades']}")
+    print(f"Max Drawdown: ${best_result['max_drawdown']}")
+    print(f"Robust Score: {best_result['robust_score']}")
 
     print(f"\nOptimization saved to {OPTIMIZATION_FILE}")
 
