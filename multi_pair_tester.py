@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import yfinance as yf
+from pair_utils import get_pip_size
 
 from config import (
     PAIRS_TO_TEST,
@@ -98,6 +99,7 @@ def compare_pairs():
             result = run_strategy_backtest(strategy_name, data, symbol=symbol)
             result["pair"] = pair_name
             result["symbol"] = symbol
+            result["pip_size"] = get_pip_size(symbol)
 
             results.append(result)
 
@@ -110,6 +112,7 @@ def compare_pairs():
     preferred_columns = [
         "pair",
         "symbol",
+        "pip_size",
         "strategy",
         "total_trades",
         "winning_trades",

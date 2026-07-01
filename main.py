@@ -3,7 +3,6 @@ import pandas as pd
 from strategy import prepare_indicators, generate_signal
 from config import DATA_FILE, STRATEGY_NAME
 
-
 def main():
     print("Starting Forex Signal Bot...")
     print(f"Selected Strategy: {STRATEGY_NAME}")
