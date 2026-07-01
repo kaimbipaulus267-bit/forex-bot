@@ -28,7 +28,7 @@ STRATEGIES_TO_TEST = [
 ]
 
 
-def run_strategy_backtest(strategy_name, original_data):
+def run_strategy_backtest(strategy_name, original_data, symbol=None):
     data = original_data.copy()
     data = prepare_indicators(data, strategy_name=strategy_name)
 
@@ -97,6 +97,7 @@ def run_strategy_backtest(strategy_name, original_data):
                     exit_reason,
                     lot_size,
                     balance,
+                    symbol=symbol,
                 )
 
                 position = None
@@ -127,6 +128,7 @@ def run_strategy_backtest(strategy_name, original_data):
                     exit_reason,
                     lot_size,
                     balance,
+                    symbol=symbol,
                 )
 
                 position = None
@@ -145,16 +147,16 @@ def run_strategy_backtest(strategy_name, original_data):
                 position = "BUY"
                 entry_price = current_close
                 entry_time = current_time
-                stop_loss = get_stop_loss_price(entry_price, "BUY")
-                take_profit = get_take_profit_price(entry_price, "BUY")
+                stop_loss = get_stop_loss_price(entry_price, "BUY", symbol)
+                take_profit = get_take_profit_price(entry_price, "BUY", symbol)
                 trades_today += 1
 
             elif signal == "SELL":
                 position = "SELL"
                 entry_price = current_close
                 entry_time = current_time
-                stop_loss = get_stop_loss_price(entry_price, "SELL")
-                take_profit = get_take_profit_price(entry_price, "SELL")
+                stop_loss = get_stop_loss_price(entry_price, "SELL", symbol)
+                take_profit = get_take_profit_price(entry_price, "SELL", symbol)
                 trades_today += 1
 
     if len(trades) == 0:

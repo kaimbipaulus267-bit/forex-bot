@@ -29,6 +29,7 @@ PAIRS_TO_TEST = [
     {"name": "NZD/USD", "symbol": "NZDUSD=X"},
     {"name": "USD/CAD", "symbol": "CAD=X"},
     {"name": "USD/CHF", "symbol": "CHF=X"},
+    {"name": "USD/JPY", "symbol": "JPY=X"},
 ]
 
 # =========================

@@ -95,8 +95,7 @@ def compare_pairs():
         for strategy_name in STRATEGIES_TO_TEST:
             print(f"Testing {strategy_name} on {pair_name}")
 
-            result = run_strategy_backtest(strategy_name, data)
-
+            result = run_strategy_backtest(strategy_name, data, symbol=symbol)
             result["pair"] = pair_name
             result["symbol"] = symbol
 

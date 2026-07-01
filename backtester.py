@@ -1,5 +1,6 @@
 import pandas as pd
 
+from pair_utils import get_pip_size
 from strategy import prepare_indicators, generate_signal
 from risk_manager import calculate_lot_size
 from config import (
@@ -17,15 +18,14 @@ from config import (
     DAILY_LOSS_LIMIT_PERCENT,
 )
 
-PIP_SIZE = 0.0001
+def calculate_pips(entry_price, exit_price, trade_type, symbol=None):
+    pip_size = get_pip_size(symbol)
 
-
-def calculate_pips(entry_price, exit_price, trade_type):
     if trade_type == "BUY":
-        return (exit_price - entry_price) / PIP_SIZE
+        return (exit_price - entry_price) / pip_size
 
     elif trade_type == "SELL":
-        return (entry_price - exit_price) / PIP_SIZE
+        return (entry_price - exit_price) / pip_size
 
     return 0
 
@@ -40,21 +40,24 @@ def calculate_money_result(net_pips, lot_size):
     return net_result
 
 
-def get_stop_loss_price(entry_price, trade_type):
+def get_stop_loss_price(entry_price, trade_type, symbol=None):
+    pip_size = get_pip_size(symbol)
+
     if trade_type == "BUY":
-        return entry_price - (STOP_LOSS_PIPS * PIP_SIZE)
+        return entry_price - (STOP_LOSS_PIPS * pip_size)
 
     elif trade_type == "SELL":
-        return entry_price + (STOP_LOSS_PIPS * PIP_SIZE)
+        return entry_price + (STOP_LOSS_PIPS * pip_size)
 
 
-def get_take_profit_price(entry_price, trade_type):
+def get_take_profit_price(entry_price, trade_type, symbol=None):
+    pip_size = get_pip_size(symbol)
+
     if trade_type == "BUY":
-        return entry_price + (TAKE_PROFIT_PIPS * PIP_SIZE)
+        return entry_price + (TAKE_PROFIT_PIPS * pip_size)
 
     elif trade_type == "SELL":
-        return entry_price - (TAKE_PROFIT_PIPS * PIP_SIZE)
-
+        return entry_price - (TAKE_PROFIT_PIPS * pip_size)
 
 def close_trade(
     trades,
@@ -68,8 +71,9 @@ def close_trade(
     exit_reason,
     lot_size,
     balance,
-):
-    raw_pips = calculate_pips(entry_price, exit_price, trade_type)
+    symbol=None,
+    ):
+    raw_pips = calculate_pips(entry_price, exit_price, trade_type, symbol)
     net_pips = calculate_net_pips(raw_pips)
     money_result = calculate_money_result(net_pips, lot_size)
 
