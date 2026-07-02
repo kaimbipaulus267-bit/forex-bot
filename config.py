@@ -29,6 +29,10 @@ MT5_ALLOW_TRADING = False
 # Examples: "EURUSD", "EURUSDm", "EURUSD.a"
 MT5_SYMBOL = "XAUUSDm"
 
+MT5_TIMEFRAME = "M15"
+MT5_CANDLES = 300
+MT5_LIVE_DATA_FILE = os.path.join(RESULTS_DIR, "mt5_live_data.csv")
+
 # =========================
 # Market data settings
 # =========================
