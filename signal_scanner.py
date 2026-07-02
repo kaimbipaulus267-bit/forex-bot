@@ -9,8 +9,9 @@ from config import (
     SIGNAL_FILE,
     SIGNAL_HISTORY_FILE,
     SYMBOL,
+    MT5_SYMBOL,
     STRATEGY_NAME,
-    SIGNAL_DATA_SOURCE
+    SIGNAL_DATA_SOURCE,
 )
 
 from strategy import prepare_indicators, generate_signal
@@ -40,6 +41,11 @@ def scan_latest_signal():
 
     signal_data_file = get_signal_data_file()
 
+    if SIGNAL_DATA_SOURCE == "MT5":
+        active_symbol = MT5_SYMBOL
+    else:
+        active_symbol = SYMBOL
+
     try:
        data = pd.read_csv(signal_data_file)
     except FileNotFoundError:
@@ -66,7 +72,7 @@ def scan_latest_signal():
     close_price = float(latest["close"])
 
     lot_size = calculate_lot_size()
-    pip_size = get_pip_size(SYMBOL)
+    pip_size = get_pip_size(active_symbol)
 
     stop_loss = None
     take_profit = None
@@ -74,17 +80,17 @@ def scan_latest_signal():
 
     if signal == "BUY":
         entry_price = close_price
-        stop_loss = get_stop_loss_price(close_price, "BUY", SYMBOL)
-        take_profit = get_take_profit_price(close_price, "BUY", SYMBOL)
+        stop_loss = get_stop_loss_price(close_price, "BUY", active_symbol)
+        take_profit = get_take_profit_price(close_price, "BUY", active_symbol)
 
     elif signal == "SELL":
         entry_price = close_price
-        stop_loss = get_stop_loss_price(close_price, "SELL", SYMBOL)
-        take_profit = get_take_profit_price(close_price, "SELL", SYMBOL)
+        stop_loss = get_stop_loss_price(close_price, "SELL", active_symbol)
+        take_profit = get_take_profit_price(close_price, "SELL", active_symbol)
 
     signal_data = {
         "scan_time": scan_time,
-        "symbol": SYMBOL,
+        "symbol": active_symbol,
         "strategy": STRATEGY_NAME,
         "data_source": SIGNAL_DATA_SOURCE,
         "market_time": latest_time,
@@ -104,7 +110,7 @@ Latest Signal Report
 --------------------
 
 Scan Time: {scan_time}
-Symbol: {SYMBOL}
+Symbol: {active_symbol}
 Data Source: {SIGNAL_DATA_SOURCE}
 Strategy: {STRATEGY_NAME}
 Market Time: {latest_time}

@@ -17,6 +17,7 @@ WALK_FORWARD_FILE = os.path.join(RESULTS_DIR, "walk_forward_results.csv")
 READINESS_FILE = os.path.join(RESULTS_DIR, "readiness_report.txt")
 SIGNAL_FILE = os.path.join(RESULTS_DIR, "latest_signal.txt")
 SIGNAL_HISTORY_FILE = os.path.join(RESULTS_DIR, "signal_history.csv")
+MT5_ORDER_PREVIEW_FILE = os.path.join(RESULTS_DIR, "mt5_order_preview.txt")
 
 # =========================
 # MetaTrader 5 settings
@@ -32,6 +33,9 @@ MT5_SYMBOL = "XAUUSDm"
 MT5_TIMEFRAME = "M15"
 MT5_CANDLES = 300
 MT5_LIVE_DATA_FILE = os.path.join(RESULTS_DIR, "mt5_live_data.csv")
+
+MT5_DEVIATION = 20
+MT5_MAGIC_NUMBER = 202606
 
 # =========================
 # Signal data source
