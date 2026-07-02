@@ -25,6 +25,7 @@ from config import (
     DAILY_LOSS_LIMIT_PERCENT,
     MULTI_PAIR_FILE,
     WALK_FORWARD_FILE,
+    READINESS_FILE,
 )
 
 
@@ -129,6 +130,7 @@ def show_download_buttons():
         "Download Optimization CSV": OPTIMIZATION_FILE,
         "Download Multi-Pair Results CSV": MULTI_PAIR_FILE,
         "Download Walk-Forward CSV": WALK_FORWARD_FILE,
+        "Download Readiness Report TXT": READINESS_FILE,
     }
 
     for label, file_path in files.items():
@@ -242,6 +244,17 @@ def show_sidebar_controls():
         else:
             st.sidebar.error("Multi-pair test failed.")
 
+    if st.sidebar.button("Run Readiness Check"):
+        with st.spinner("Checking bot readiness..."):
+            code, output = run_python_script("readiness_check.py")
+
+        st.session_state.last_command_output = output
+
+        if code == 0:
+            st.sidebar.success("Readiness check completed.")
+        else:
+            st.sidebar.error("Readiness check failed.")
+
     if st.sidebar.button("Refresh Dashboard"):
         st.rerun()
 
@@ -258,6 +271,7 @@ def show_sidebar_controls():
         "Optimization": OPTIMIZATION_FILE,
         "Multi-Pair": MULTI_PAIR_FILE,
         "Walk Forward": WALK_FORWARD_FILE,
+        "Readiness": READINESS_FILE,
     }
 
     for name, path in files.items():
@@ -563,6 +577,32 @@ def show_walk_forward_results():
         "Walk-forward testing checks if optimized settings still work on future data that the optimizer did not see."
     )
 
+def show_readiness_report():
+    st.subheader("Bot Readiness Report")
+
+    if not file_exists(READINESS_FILE):
+        st.warning("No readiness report found. Run the readiness check first.")
+        return
+
+    with open(READINESS_FILE, "r") as file:
+        readiness_report = file.read()
+
+    if "READY FOR DEMO SIGNAL TESTING" in readiness_report:
+        st.success("Status: READY FOR DEMO SIGNAL TESTING")
+    elif "CAUTION" in readiness_report:
+        st.warning("Status: CAUTION")
+    elif "NOT READY" in readiness_report:
+        st.error("Status: NOT READY")
+    else:
+        st.info("Status found in report below.")
+
+    st.text(readiness_report)
+
+    st.info(
+        "This readiness report does not mean the bot is guaranteed to be profitable. "
+        "It only checks whether the strategy is safe enough for demo signal testing."
+    )
+
 def main():
     add_custom_css()
     show_sidebar_controls()
@@ -587,7 +627,7 @@ def main():
 
     st.divider()
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "Report",
     "Chart",
     "Equity Curve",
@@ -596,8 +636,9 @@ def main():
     "Optimization",
     "Multi-Pair",
     "Walk-Forward",
+    "Readiness",
     "Market Data"
-    ])
+   ])
 
     with tab1:
         show_report()
@@ -624,6 +665,9 @@ def main():
         show_walk_forward_results()
 
     with tab9:
+        show_readiness_report()
+
+    with tab10:
         show_market_data()
 
 

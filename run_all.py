@@ -10,6 +10,7 @@ from optimizer import run_optimizer
 from bot_logger import setup_logger
 from multi_pair_tester import compare_pairs
 from walk_forward import run_walk_forward_test
+from readiness_check import check_bot_readiness
 
 logger = setup_logger()
 
@@ -94,6 +95,11 @@ def run_all():
 
     if not walk_forward_completed:
         logger.warning("Walk-forward testing failed.")
+
+    readiness_completed = run_step("Step 9: Checking bot readiness", check_bot_readiness)
+
+    if not readiness_completed:
+        logger.warning("Readiness check failed.")
 
     logger.info("==============================")
     logger.info("FOREX BOT FULL TEST COMPLETED")

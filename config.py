@@ -14,6 +14,7 @@ COMPARISON_FILE = os.path.join(RESULTS_DIR, "strategy_comparison.csv")
 OPTIMIZATION_FILE = os.path.join(RESULTS_DIR, "optimization_results.csv")
 MULTI_PAIR_FILE = os.path.join(RESULTS_DIR, "multi_pair_results.csv")
 WALK_FORWARD_FILE = os.path.join(RESULTS_DIR, "walk_forward_results.csv")
+READINESS_FILE = os.path.join(RESULTS_DIR, "readiness_report.txt")
 
 # =========================
 # Market data settings
