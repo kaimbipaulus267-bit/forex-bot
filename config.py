@@ -19,6 +19,17 @@ SIGNAL_FILE = os.path.join(RESULTS_DIR, "latest_signal.txt")
 SIGNAL_HISTORY_FILE = os.path.join(RESULTS_DIR, "signal_history.csv")
 
 # =========================
+# MetaTrader 5 settings
+# =========================
+
+MT5_ENABLED = False
+MT5_ALLOW_TRADING = False
+
+# Broker symbols may be different.
+# Examples: "EURUSD", "EURUSDm", "EURUSD.a"
+MT5_SYMBOL = "XAUUSDm"
+
+# =========================
 # Market data settings
 # =========================
 
