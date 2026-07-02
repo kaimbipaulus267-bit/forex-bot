@@ -34,6 +34,15 @@ MT5_CANDLES = 300
 MT5_LIVE_DATA_FILE = os.path.join(RESULTS_DIR, "mt5_live_data.csv")
 
 # =========================
+# Signal data source
+# =========================
+
+SIGNAL_DATA_SOURCE = "MT5"
+# Options:
+# "YAHOO" = use results/data.csv
+# "MT5" = use results/mt5_live_data.csv
+
+# =========================
 # Market data settings
 # =========================
 

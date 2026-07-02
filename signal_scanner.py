@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from datetime import datetime
+from data_source import get_signal_data_file
 
 from config import (
     RESULTS_DIR,
@@ -9,6 +10,7 @@ from config import (
     SIGNAL_HISTORY_FILE,
     SYMBOL,
     STRATEGY_NAME,
+    SIGNAL_DATA_SOURCE
 )
 
 from strategy import prepare_indicators, generate_signal
@@ -36,10 +38,14 @@ def save_signal_history(signal_data):
 def scan_latest_signal():
     print("Scanning latest forex signal...")
 
+    signal_data_file = get_signal_data_file()
+
     try:
-        data = pd.read_csv(DATA_FILE)
+       data = pd.read_csv(signal_data_file)
     except FileNotFoundError:
-        print(f"{DATA_FILE} not found. Run download_data.py or run_all.py first.")
+        print(f"{signal_data_file} not found.")
+        print("If using YAHOO, run download_data.py or run_all.py first.")
+        print("If using MT5, run mt5_live_data.py first.")
         return False
 
     if data.empty:
@@ -80,6 +86,7 @@ def scan_latest_signal():
         "scan_time": scan_time,
         "symbol": SYMBOL,
         "strategy": STRATEGY_NAME,
+        "data_source": SIGNAL_DATA_SOURCE,
         "market_time": latest_time,
         "close_price": round(close_price, 5),
         "pip_size": pip_size,
@@ -98,6 +105,7 @@ Latest Signal Report
 
 Scan Time: {scan_time}
 Symbol: {SYMBOL}
+Data Source: {SIGNAL_DATA_SOURCE}
 Strategy: {STRATEGY_NAME}
 Market Time: {latest_time}
 Close Price: {round(close_price, 5)}

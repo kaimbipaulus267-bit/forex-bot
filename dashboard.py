@@ -4,6 +4,7 @@ import subprocess
 import pandas as pd
 import streamlit as st
 from multi_pair_tester import compare_pairs
+from mt5_live_data import download_mt5_live_data
 
 from config import (
     DATA_FILE,
@@ -28,6 +29,8 @@ from config import (
     READINESS_FILE,
     SIGNAL_FILE,
     SIGNAL_HISTORY_FILE,
+    MT5_LIVE_DATA_FILE,
+    SIGNAL_DATA_SOURCE,
 )
 
 
@@ -135,6 +138,7 @@ def show_download_buttons():
         "Download Readiness Report TXT": READINESS_FILE,
         "Download Latest Signal TXT": SIGNAL_FILE,
         "Download Signal History CSV": SIGNAL_HISTORY_FILE,
+        "Download MT5 Live Data CSV": MT5_LIVE_DATA_FILE,
     }
 
     for label, file_path in files.items():
@@ -259,7 +263,7 @@ def show_sidebar_controls():
         else:
             st.sidebar.error("Readiness check failed.")
 
-    if st.sidebar.button("📡 Scan Latest Signal"):
+    if st.sidebar.button("Scan Latest Signal"):
         with st.spinner("Scanning latest signal..."):
             code, output = run_python_script("signal_scanner.py")
 
@@ -269,6 +273,17 @@ def show_sidebar_controls():
             st.sidebar.success("Signal scan completed.")
         else:
             st.sidebar.error("Signal scan failed.")
+
+    if st.sidebar.button("Download MT5 Live Data"):
+        with st.spinner("Downloading MT5 live data..."):
+            code, output = run_python_script("mt5_live_data.py")
+
+        st.session_state.last_command_output = output
+
+        if code == 0:
+            st.sidebar.success("MT5 live data downloaded.")
+        else:
+            st.sidebar.error("MT5 live data download failed.")
 
     if st.sidebar.button("Refresh Dashboard"):
         st.rerun()
@@ -289,6 +304,7 @@ def show_sidebar_controls():
         "Readiness": READINESS_FILE,
         "Latest Signal": SIGNAL_FILE,
         "Signal History": SIGNAL_HISTORY_FILE,
+        "MT5 Live Data": MT5_LIVE_DATA_FILE,
     }
 
     for name, path in files.items():
@@ -676,6 +692,32 @@ def show_signal_history():
     else:
         st.info("Latest signal is NO TRADE.")
 
+def show_mt5_live_data():
+    st.subheader("MT5 Live Data")
+
+    st.info(f"Current signal data source: {SIGNAL_DATA_SOURCE}")
+
+    mt5_data = load_csv(MT5_LIVE_DATA_FILE)
+
+    if mt5_data is None or mt5_data.empty:
+        st.warning("No MT5 live data found. Run MT5 live data download first.")
+        return
+
+    st.dataframe(mt5_data.tail(100), use_container_width=True)
+
+    latest = mt5_data.iloc[-1]
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Latest Time", latest["time"])
+
+    with col2:
+        st.metric("Close Price", latest["close"])
+
+    with col3:
+        st.metric("Spread", latest["spread"])
+
 def main():
     add_custom_css()
     show_sidebar_controls()
@@ -700,7 +742,7 @@ def main():
 
     st.divider()
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13 = st.tabs([
     "Report",
     "Chart",
     "Equity Curve",
@@ -712,6 +754,7 @@ def main():
     "Readiness",
     "Latest Signal",
     "Signal History",
+    "MT5 Live Data",
     "Market Data"
     ])
 
@@ -749,6 +792,9 @@ def main():
         show_signal_history()
 
     with tab12:
+        show_mt5_live_data()
+
+    with tab13:
         show_market_data()
 
 
