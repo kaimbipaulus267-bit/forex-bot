@@ -27,6 +27,7 @@ from config import (
     WALK_FORWARD_FILE,
     READINESS_FILE,
     SIGNAL_FILE,
+    SIGNAL_HISTORY_FILE,
 )
 
 
@@ -133,6 +134,7 @@ def show_download_buttons():
         "Download Walk-Forward CSV": WALK_FORWARD_FILE,
         "Download Readiness Report TXT": READINESS_FILE,
         "Download Latest Signal TXT": SIGNAL_FILE,
+        "Download Signal History CSV": SIGNAL_HISTORY_FILE,
     }
 
     for label, file_path in files.items():
@@ -286,6 +288,7 @@ def show_sidebar_controls():
         "Walk Forward": WALK_FORWARD_FILE,
         "Readiness": READINESS_FILE,
         "Latest Signal": SIGNAL_FILE,
+        "Signal History": SIGNAL_HISTORY_FILE,
     }
 
     for name, path in files.items():
@@ -638,6 +641,41 @@ def show_latest_signal():
 
     st.text(signal_report)
 
+def show_signal_history():
+    st.subheader("Signal History")
+
+    signal_history = load_csv(SIGNAL_HISTORY_FILE)
+
+    if signal_history is None or signal_history.empty:
+        st.warning("No signal history found. Run the signal scanner first.")
+        return
+
+    st.dataframe(signal_history, use_container_width=True)
+
+    latest_signal = signal_history.iloc[-1]
+
+    st.write("### Latest Saved Signal")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Signal", latest_signal["signal"])
+
+    with col2:
+        st.metric("Symbol", latest_signal["symbol"])
+
+    with col3:
+        st.metric("Strategy", latest_signal["strategy"])
+
+    if latest_signal["signal"] == "BUY":
+        st.success("Latest signal is BUY.")
+
+    elif latest_signal["signal"] == "SELL":
+        st.error("Latest signal is SELL.")
+
+    else:
+        st.info("Latest signal is NO TRADE.")
+
 def main():
     add_custom_css()
     show_sidebar_controls()
@@ -662,7 +700,7 @@ def main():
 
     st.divider()
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12 = st.tabs([
     "Report",
     "Chart",
     "Equity Curve",
@@ -673,6 +711,7 @@ def main():
     "Walk-Forward",
     "Readiness",
     "Latest Signal",
+    "Signal History",
     "Market Data"
     ])
 
@@ -707,6 +746,9 @@ def main():
         show_latest_signal()
 
     with tab11:
+        show_signal_history()
+
+    with tab12:
         show_market_data()
 
 

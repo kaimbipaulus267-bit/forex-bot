@@ -1,10 +1,12 @@
 import os
 import pandas as pd
+from datetime import datetime
 
 from config import (
     RESULTS_DIR,
     DATA_FILE,
     SIGNAL_FILE,
+    SIGNAL_HISTORY_FILE,
     SYMBOL,
     STRATEGY_NAME,
 )
@@ -13,6 +15,22 @@ from strategy import prepare_indicators, generate_signal
 from backtester import get_stop_loss_price, get_take_profit_price
 from risk_manager import calculate_lot_size
 from pair_utils import get_pip_size
+
+
+def save_signal_history(signal_data):
+    """
+    Saves every scanned signal to signal_history.csv.
+    """
+
+    signal_df = pd.DataFrame([signal_data])
+
+    if os.path.exists(SIGNAL_HISTORY_FILE):
+        old_history = pd.read_csv(SIGNAL_HISTORY_FILE)
+        updated_history = pd.concat([old_history, signal_df], ignore_index=True)
+    else:
+        updated_history = signal_df
+
+    updated_history.to_csv(SIGNAL_HISTORY_FILE, index=False)
 
 
 def scan_latest_signal():
@@ -37,6 +55,7 @@ def scan_latest_signal():
 
     latest = data.iloc[-1]
 
+    scan_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     latest_time = latest["time"]
     close_price = float(latest["close"])
 
@@ -45,22 +64,42 @@ def scan_latest_signal():
 
     stop_loss = None
     take_profit = None
+    entry_price = None
 
     if signal == "BUY":
+        entry_price = close_price
         stop_loss = get_stop_loss_price(close_price, "BUY", SYMBOL)
         take_profit = get_take_profit_price(close_price, "BUY", SYMBOL)
 
     elif signal == "SELL":
+        entry_price = close_price
         stop_loss = get_stop_loss_price(close_price, "SELL", SYMBOL)
         take_profit = get_take_profit_price(close_price, "SELL", SYMBOL)
+
+    signal_data = {
+        "scan_time": scan_time,
+        "symbol": SYMBOL,
+        "strategy": STRATEGY_NAME,
+        "market_time": latest_time,
+        "close_price": round(close_price, 5),
+        "pip_size": pip_size,
+        "lot_size": lot_size,
+        "signal": signal,
+        "entry_price": round(entry_price, 5) if entry_price is not None else "",
+        "stop_loss": round(stop_loss, 5) if stop_loss is not None else "",
+        "take_profit": round(take_profit, 5) if take_profit is not None else "",
+    }
+
+    save_signal_history(signal_data)
 
     report = f"""
 Latest Signal Report
 --------------------
 
+Scan Time: {scan_time}
 Symbol: {SYMBOL}
 Strategy: {STRATEGY_NAME}
-Time: {latest_time}
+Market Time: {latest_time}
 Close Price: {round(close_price, 5)}
 Pip Size: {pip_size}
 Lot Size: {lot_size}
@@ -96,6 +135,7 @@ The safest action is to wait.
         file.write(report)
 
     print(f"Latest signal saved to {SIGNAL_FILE}")
+    print(f"Signal history updated at {SIGNAL_HISTORY_FILE}")
 
     return True
 

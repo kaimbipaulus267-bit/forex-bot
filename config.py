@@ -16,6 +16,7 @@ MULTI_PAIR_FILE = os.path.join(RESULTS_DIR, "multi_pair_results.csv")
 WALK_FORWARD_FILE = os.path.join(RESULTS_DIR, "walk_forward_results.csv")
 READINESS_FILE = os.path.join(RESULTS_DIR, "readiness_report.txt")
 SIGNAL_FILE = os.path.join(RESULTS_DIR, "latest_signal.txt")
+SIGNAL_HISTORY_FILE = os.path.join(RESULTS_DIR, "signal_history.csv")
 
 # =========================
 # Market data settings
