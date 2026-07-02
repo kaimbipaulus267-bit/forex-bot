@@ -26,6 +26,7 @@ from config import (
     MULTI_PAIR_FILE,
     WALK_FORWARD_FILE,
     READINESS_FILE,
+    SIGNAL_FILE,
 )
 
 
@@ -131,6 +132,7 @@ def show_download_buttons():
         "Download Multi-Pair Results CSV": MULTI_PAIR_FILE,
         "Download Walk-Forward CSV": WALK_FORWARD_FILE,
         "Download Readiness Report TXT": READINESS_FILE,
+        "Download Latest Signal TXT": SIGNAL_FILE,
     }
 
     for label, file_path in files.items():
@@ -255,6 +257,17 @@ def show_sidebar_controls():
         else:
             st.sidebar.error("Readiness check failed.")
 
+    if st.sidebar.button("📡 Scan Latest Signal"):
+        with st.spinner("Scanning latest signal..."):
+            code, output = run_python_script("signal_scanner.py")
+
+        st.session_state.last_command_output = output
+
+        if code == 0:
+            st.sidebar.success("Signal scan completed.")
+        else:
+            st.sidebar.error("Signal scan failed.")
+
     if st.sidebar.button("Refresh Dashboard"):
         st.rerun()
 
@@ -272,6 +285,7 @@ def show_sidebar_controls():
         "Multi-Pair": MULTI_PAIR_FILE,
         "Walk Forward": WALK_FORWARD_FILE,
         "Readiness": READINESS_FILE,
+        "Latest Signal": SIGNAL_FILE,
     }
 
     for name, path in files.items():
@@ -603,6 +617,27 @@ def show_readiness_report():
         "It only checks whether the strategy is safe enough for demo signal testing."
     )
 
+def show_latest_signal():
+    st.subheader("Latest Signal")
+
+    if not file_exists(SIGNAL_FILE):
+        st.warning("No latest signal found. Run the signal scanner first.")
+        return
+
+    with open(SIGNAL_FILE, "r") as file:
+        signal_report = file.read()
+
+    if "Signal: BUY" in signal_report:
+        st.success("Current Signal: BUY")
+    elif "Signal: SELL" in signal_report:
+        st.error("Current Signal: SELL")
+    elif "Signal: NO TRADE" in signal_report:
+        st.info("Current Signal: NO TRADE")
+    else:
+        st.warning("Signal status unclear.")
+
+    st.text(signal_report)
+
 def main():
     add_custom_css()
     show_sidebar_controls()
@@ -627,7 +662,7 @@ def main():
 
     st.divider()
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
     "Report",
     "Chart",
     "Equity Curve",
@@ -637,8 +672,9 @@ def main():
     "Multi-Pair",
     "Walk-Forward",
     "Readiness",
+    "Latest Signal",
     "Market Data"
-   ])
+    ])
 
     with tab1:
         show_report()
@@ -668,6 +704,9 @@ def main():
         show_readiness_report()
 
     with tab10:
+        show_latest_signal()
+
+    with tab11:
         show_market_data()
 
 

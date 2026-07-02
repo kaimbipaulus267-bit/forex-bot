@@ -11,6 +11,7 @@ from bot_logger import setup_logger
 from multi_pair_tester import compare_pairs
 from walk_forward import run_walk_forward_test
 from readiness_check import check_bot_readiness
+from signal_scanner import scan_latest_signal
 
 logger = setup_logger()
 
@@ -100,6 +101,11 @@ def run_all():
 
     if not readiness_completed:
         logger.warning("Readiness check failed.")
+
+    signal_completed = run_step("Step 10: Scanning latest signal", scan_latest_signal)
+
+    if not signal_completed:
+        logger.warning("Signal scanner failed.")
 
     logger.info("==============================")
     logger.info("FOREX BOT FULL TEST COMPLETED")
